@@ -131,6 +131,42 @@
       font-size: 13px;
       color: #7a8599;
       letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .speak-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 16px;
+      line-height: 1;
+      transition: all 0.2s ease;
+      background: rgba(196,158,97,0.1);
+      border: 1px solid rgba(196,158,97,0.2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #c49e61;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .speak-btn:hover {
+      background: rgba(196,158,97,0.2);
+      transform: scale(1.05);
+    }
+    .speak-btn.speaking {
+      background: rgba(196,158,97,0.25);
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(196,158,97,0.4); }
+      50%       { box-shadow: 0 0 0 6px rgba(196,158,97,0); }
     }
     .part-of-speech {
       font-family: 'DM Mono', monospace;
@@ -351,6 +387,20 @@ Keep tone warm, professional, and encouraging. Do NOT repeat any previously used
       const [loading, setLoading]     = useState(false);
       const [usedWords, setUsedWords] = useState(["Equanimity"]);
       const [visible, setVisible]     = useState(true);
+      const [speaking, setSpeaking]   = useState(false);
+
+      const speakWord = () => {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(wordData.word);
+        utterance.rate = 0.8;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+        utterance.onstart = () => setSpeaking(true);
+        utterance.onend   = () => setSpeaking(false);
+        utterance.onerror = () => setSpeaking(false);
+        window.speechSynthesis.speak(utterance);
+      };
 
       const fetchNextWord = async () => {
         setLoading(true);
@@ -402,7 +452,12 @@ Keep tone warm, professional, and encouraging. Do NOT repeat any previously used
               <div className="week-badge">Week {wordData.week}</div>
               <div className="word-title">{wordData.word}</div>
               <div className="word-meta">
-                <span className="pronunciation">🔊 {wordData.pronunciation}</span>
+                <span className="pronunciation">
+                  <button className={`speak-btn ${speaking ? "speaking" : ""}`} onClick={speakWord} title="Hear the word">
+                    {speaking ? "🔊 Speaking..." : "🔊 Hear it"}
+                  </button>
+                  {wordData.pronunciation}
+                </span>
                 <span className="part-of-speech">{wordData.partOfSpeech}</span>
               </div>
             </div>
